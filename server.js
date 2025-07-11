@@ -2,8 +2,6 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import cookieParser from 'cookie-parser';
-import { db3 } from './firebase.js';  // Importa a instância do Firebase do arquivo firebase.js
-import { ref, get, set, remove } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -23,52 +21,34 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Middleware de autenticação (Verificando se o usuário tem um token de autenticação)
 function isAuthenticated(req, res, next) {
-  const userToken = req.cookies['auth_token']; // Supondo que o token seja armazenado no cookie
-
+  const userToken = req.cookies['auth_token'];
   if (!userToken) {
-    return res.redirect('/login.html'); // Redireciona para login se não estiver autenticado
+    return res.redirect('/login.html');
   }
-
-  next(); // Se o token estiver presente, permite continuar
+  next();
 }
 
-// Rota de Login (Login de exemplo)
+// Rota de Login (formulário)
 app.get('/login.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/login.html'));
 });
 
-// Rota para processar o login com dados do Firebase
+// Rota para processar o login (simples, sem Firebase)
 app.post('/login', async (req, res) => {
   const { usuario, senha } = req.body;
 
-  try {
-    // Verificar se o usuário existe no Firebase
-    const usersRef = ref(db3, 'usuarios'); // Usando a instância db3 importada
-    const snapshot = await get(usersRef); // Pegando todos os usuários
-    const users = snapshot.val();
+  // 🔒 Simulação simples de usuário/senha
+  const usuariosValidos = {
+    admin: '1234',
+    operador: 'senha',
+    jurado: 'abc123'
+  };
 
-    let userFound = false;
-    let userKey = null;
-
-    // Verificando se o usuário existe e se a senha corresponde
-    for (const key in users) {
-      if (users[key].usuario === usuario && users[key].senha === senha) {
-        userFound = true;
-        userKey = key;
-        break;
-      }
-    }
-
-    if (userFound) {
-      // Se o usuário e a senha estiverem corretos, criar o cookie de autenticação
-      res.cookie('auth_token', 'logado', { httpOnly: true });
-      res.redirect('/'); // Redireciona para a página inicial após o login bem-sucedido
-    } else {
-      res.redirect('/login.html?erro=1'); // Usuário ou senha incorretos
-    }
-  } catch (error) {
-    console.error('Erro ao buscar usuário:', error);
-    res.redirect('/login.html?erro=1'); // Em caso de erro
+  if (usuariosValidos[usuario] === senha) {
+    res.cookie('auth_token', 'logado', { httpOnly: true });
+    res.redirect('/');
+  } else {
+    res.redirect('/login.html?erro=1');
   }
 });
 
@@ -77,18 +57,15 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/index.html'));
 });
 
-// Páginas protegidas com middleware de autenticação
+// Páginas protegidas
 app.get('/admin', isAuthenticated, (req, res) => {
-  console.log('Acessando a página Admin...');
   res.sendFile(path.join(__dirname, 'public/admin.html'));
 });
 
 app.get('/operador', isAuthenticated, (req, res) => {
-  console.log('Acessando a página Operador...');
   res.sendFile(path.join(__dirname, 'public/operador.html'));
 });
 
-// Outras páginas restritas
 app.get('/juradoA', isAuthenticated, (req, res) => {
   res.sendFile(path.join(__dirname, 'public/juradoA.html'));
 });
@@ -101,10 +78,10 @@ app.get('/juradoC', isAuthenticated, (req, res) => {
   res.sendFile(path.join(__dirname, 'public/juradoC.html'));
 });
 
-// Logout (Remove o token de autenticação e redireciona para a página de login)
+// Logout
 app.get('/logout', (req, res) => {
   res.clearCookie('auth_token');
-  res.redirect('/login.html'); // Redireciona de volta para login
+  res.redirect('/login.html');
 });
 
 // Inicia o servidor
