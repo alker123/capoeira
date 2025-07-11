@@ -26,7 +26,7 @@ document.getElementById("cadastrar-usuario-btn").onclick = () => {
   if (!user.includes('@')) return alert("O usuário deve ser um e-mail válido.");
 
   const usuarioSemArroba = user.split('@')[0];
-  const rota = `${usuarioSemArroba}.html`; // ✅ garante que .html será salvo
+  const rota = `${usuarioSemArroba}.html`; // ✅ Salva com .html
 
   // Salvar usuário no Firebase
   set(ref(db, 'usuarios/' + user), { senha, rota })
@@ -41,7 +41,6 @@ document.getElementById("cadastrar-usuario-btn").onclick = () => {
       alert("Erro ao cadastrar o usuário: " + error.message);
     });
 };
-
 
 // Função de login
 document.getElementById("btnLogin").addEventListener("click", function () {
@@ -59,14 +58,15 @@ document.getElementById("btnLogin").addEventListener("click", function () {
     return;
   }
 
+  // Busca no Firebase
   get(ref(db, "usuarios/" + usuario))
     .then((snapshot) => {
       if (snapshot.exists()) {
         const dados = snapshot.val();
         if (dados.senha === senha) {
-          const rota = dados.rota || "pagina_padrao.html";
-          // Redireciona para /admin em vez de /admin.html
-          window.location.href = `/${rota.replace(".html", "")}`;
+          const rota = dados.rota || "index.html";
+          const rotaSemHtml = rota.replace(".html", ""); // ✅ remove .html da URL
+          window.location.href = `/${rotaSemHtml}`; // ✅ redireciona limpo
         } else {
           msg.textContent = "Senha incorreta!";
         }
