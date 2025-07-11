@@ -1,0 +1,8 @@
+# Ativar o módulo de reescrita
+RewriteEngine On
+
+# Regra para remover o ".html" no final das URLs
+RewriteRule ^(admin|operador|juradoA|juradoB|juradoC)$ $1.html [NC,L]
+
+# Se alguém tentar acessar algo com ".html", redireciona para a URL sem a extensão
+RewriteRule ^(.*)\.html$ /$1 [R=301,L]
