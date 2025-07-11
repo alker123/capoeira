@@ -2,8 +2,8 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import cookieParser from 'cookie-parser';
-import firebase from 'firebase/app';
-import 'firebase/database';  // Importando o módulo para Realtime Database
+import { db3 } from './firebase.js';  // Importa a instância do Firebase do arquivo firebase.js
+import { ref, get, set, remove } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -11,22 +11,6 @@ const port = process.env.PORT || 3000;
 // Configuração do __dirname para ES Modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-// Configuração do Firebase
-const firebaseConfig = {
-  apiKey: "sua-api-key",
-  authDomain: "seu-auth-domain",
-  databaseURL: "https://dados-teste-8b85d-default-rtdb.firebaseio.com/", // URL do seu banco de dados Firebase
-  projectId: "seu-project-id",
-  storageBucket: "seu-storage-bucket",
-  messagingSenderId: "seu-messaging-sender-id",
-  appId: "seu-app-id",
-  measurementId: "seu-measurement-id"
-};
-
-// Inicializar o Firebase
-firebase.initializeApp(firebaseConfig);
-const database = firebase.database();
 
 // Middleware para lidar com cookies
 app.use(cookieParser());
@@ -59,21 +43,28 @@ app.post('/login', async (req, res) => {
 
   try {
     // Verificar se o usuário existe no Firebase
-    const ref = database.ref('usuarios'); // Refere-se à chave 'usuarios' no Firebase
-    const snapshot = await ref.orderByChild('usuario').equalTo(usuario).once('value');
-    const user = snapshot.val();
+    const usersRef = ref(db3, 'usuarios'); // Usando a instância db3 importada
+    const snapshot = await get(usersRef); // Pegando todos os usuários
+    const users = snapshot.val();
 
-    if (user) {
-      const userKey = Object.keys(user)[0]; // Pega a chave do usuário
-      if (user[userKey].senha === senha) {
-        // Se a senha estiver correta, criar o cookie de autenticação
-        res.cookie('auth_token', 'logado', { httpOnly: true });
-        res.redirect('/'); // Redireciona para a página inicial após o login bem-sucedido
-      } else {
-        res.redirect('/login.html?erro=1'); // Senha incorreta
+    let userFound = false;
+    let userKey = null;
+
+    // Verificando se o usuário existe e se a senha corresponde
+    for (const key in users) {
+      if (users[key].usuario === usuario && users[key].senha === senha) {
+        userFound = true;
+        userKey = key;
+        break;
       }
+    }
+
+    if (userFound) {
+      // Se o usuário e a senha estiverem corretos, criar o cookie de autenticação
+      res.cookie('auth_token', 'logado', { httpOnly: true });
+      res.redirect('/'); // Redireciona para a página inicial após o login bem-sucedido
     } else {
-      res.redirect('/login.html?erro=1'); // Usuário não encontrado
+      res.redirect('/login.html?erro=1'); // Usuário ou senha incorretos
     }
   } catch (error) {
     console.error('Erro ao buscar usuário:', error);
