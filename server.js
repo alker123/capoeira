@@ -72,3 +72,13 @@ app.get('/juradoC', isAuthenticated, (req, res) => {
 app.listen(port, () => {
   console.log(`Servidor rodando em http://localhost:${port}`);
 });
+
+app.get('/admin', isAuthenticated, (req, res) => {
+  console.log('Acessando a página Admin...');
+  res.sendFile(path.join(__dirname, 'admin.html'));
+});
+
+app.get('/operador', isAuthenticated, (req, res) => {
+  console.log('Acessando a página Operador...');
+  res.sendFile(path.join(__dirname, 'operador.html'));
+});
