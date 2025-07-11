@@ -1,10 +1,10 @@
 {
-  "routes": {
-    "/admin": "admin.html",
-    "/operador": "operador.html",
-    "/juradoA": "juradoA.html",
-    "/juradoB": "juradoB.html",
-    "/juradoC": "juradoC.html",
-    "/login": "index.html"
-  }
+  "routes": [
+    { "src": "/admin", "dest": "/admin.html" },
+    { "src": "/operador", "dest": "/operador.html" },
+    { "src": "/juradoA", "dest": "/juradoA.html" },
+    { "src": "/juradoB", "dest": "/juradoB.html" },
+    { "src": "/juradoC", "dest": "/juradoC.html" },
+    { "src": "/login", "dest": "/index.html" }
+  ]
 }
