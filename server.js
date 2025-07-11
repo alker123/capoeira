@@ -2,62 +2,56 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import cookieParser from 'cookie-parser';
+import { autenticarUsuario } from './auth.js';
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Configuração do __dirname para ES Modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Middleware para lidar com cookies
 app.use(cookieParser());
-
-// Middleware para analisar dados de formulários
 app.use(express.urlencoded({ extended: true }));
-
-// Serve arquivos estáticos da pasta public
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Middleware de autenticação (Verificando se o usuário tem um token de autenticação)
 function isAuthenticated(req, res, next) {
   const userToken = req.cookies['auth_token'];
   if (!userToken) {
-    return res.redirect('/login.html');
+    return res.redirect('/index.html');
   }
   next();
 }
 
-// Rota de Login (formulário)
-app.get('/login.html', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public/login.html'));
+// Página inicial de login
+app.get('/index.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/index.html'));
 });
 
-// Rota para processar o login (simples, sem Firebase)
+// Login via auth.js
 app.post('/login', async (req, res) => {
   const { usuario, senha } = req.body;
 
-  // 🔒 Simulação simples de usuário/senha
-  const usuariosValidos = {
-    admin: '1234',
-    operador: 'senha',
-    jurado: 'abc123'
-  };
+  try {
+    const tipo = await autenticarUsuario(usuario, senha);
 
-  if (usuariosValidos[usuario] === senha) {
-    res.cookie('auth_token', 'logado', { httpOnly: true });
-    res.redirect('/');
-  } else {
-    res.redirect('/login.html?erro=1');
+    if (tipo) {
+      res.cookie('auth_token', 'logado', { httpOnly: true });
+
+      const rota = `/${tipo}`;
+      return res.redirect(rota);
+    } else {
+      return res.redirect('/index.html?erro=1');
+    }
+  } catch (err) {
+    return res.redirect('/index.html?erro=1');
   }
 });
 
-// Página Inicial
+// Protegidas
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/index.html'));
 });
 
-// Páginas protegidas
 app.get('/admin', isAuthenticated, (req, res) => {
   res.sendFile(path.join(__dirname, 'public/admin.html'));
 });
@@ -81,10 +75,10 @@ app.get('/juradoC', isAuthenticated, (req, res) => {
 // Logout
 app.get('/logout', (req, res) => {
   res.clearCookie('auth_token');
-  res.redirect('/login.html');
+  res.redirect('/index.html');
 });
 
-// Inicia o servidor
+// Start
 app.listen(port, () => {
   console.log(`Servidor rodando em http://localhost:${port}`);
 });
