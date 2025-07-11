@@ -1,0 +1,10 @@
+{
+  "routes": {
+    "/admin": "admin.html",
+    "/operador": "operador.html",
+    "/juradoA": "juradoA.html",
+    "/juradoB": "juradoB.html",
+    "/juradoC": "juradoC.html",
+    "/login": "index.html"
+  }
+}
