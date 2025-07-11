@@ -64,6 +64,8 @@ document.getElementById("btnLogin").addEventListener("click", function () {
       if (snapshot.exists()) {
         const dados = snapshot.val();
         if (dados.senha === senha) {
+          // Salva o estado de login
+          localStorage.setItem("isLoggedIn", "true");
           const rota = dados.rota || "index.html";
           const rotaSemHtml = rota.replace(".html", ""); // ✅ remove .html da URL
           window.location.href = `/${rotaSemHtml}`; // ✅ redireciona limpo
@@ -79,3 +81,29 @@ document.getElementById("btnLogin").addEventListener("click", function () {
       console.error(error);
     });
 });
+
+// Função para verificar se o usuário está autenticado em páginas restritas
+function verificarLogin() {
+  const isLoggedIn = localStorage.getItem("isLoggedIn");
+  
+  // Se não estiver logado, redireciona para a página de login
+  if (!isLoggedIn) {
+    window.location.href = "/login.html"; // Redireciona para login se não estiver autenticado
+  }
+}
+
+// Chama a verificação de login nas páginas restritas
+document.addEventListener("DOMContentLoaded", verificarLogin);
+
+// Função para logout
+function logout() {
+  // Limpa a autenticação do usuário
+  localStorage.removeItem("isLoggedIn");
+  window.location.href = "/login.html"; // Redireciona para a página de login
+}
+
+// Você pode vincular essa função de logout a um botão de logout nas páginas restritas
+const btnLogout = document.getElementById("btnLogout");
+if (btnLogout) {
+  btnLogout.addEventListener("click", logout);
+}
