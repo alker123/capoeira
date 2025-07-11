@@ -1,7 +1,7 @@
-import express from "express";
-import path from "path";
-import { fileURLToPath } from "url";
-import cookieParser from "cookie-parser"; // Para lidar com cookies (se necessário)
+import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import cookieParser from 'cookie-parser';
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -10,62 +10,62 @@ const port = process.env.PORT || 3000;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Middleware para lidar com cookies (caso você queira usar cookies para autenticação)
+// Middleware para lidar com cookies
 app.use(cookieParser());
 
 // Serve arquivos estáticos da pasta public
-app.use(express.static(path.join(__dirname, "public"))); // ou "." se tudo estiver na raiz
+app.use(express.static(path.join(__dirname, 'public')));
 
-// Middleware de autenticação
+// Middleware de autenticação (Verificando se o usuário tem um token de autenticação)
 function isAuthenticated(req, res, next) {
-  const userToken = req.cookies["auth_token"]; // Supondo que você armazene o token no cookie
+  const userToken = req.cookies['auth_token']; // Supondo que o token seja armazenado no cookie
 
   if (!userToken) {
-    return res.redirect("/login.html"); // Redireciona se não estiver autenticado
+    return res.redirect('/login.html'); // Redireciona para login se não estiver autenticado
   }
 
-  // Caso você use JWT, você pode verificar o token aqui
+  // Aqui você pode verificar a validade do token, se usar JWT, por exemplo:
   // jwt.verify(userToken, secret, (err, decoded) => {
   //   if (err) {
   //     return res.redirect("/login.html");
   //   }
-  //   req.user = decoded; // O usuário será acessível em req.user
+  //   req.user = decoded; // Pode colocar o usuário autenticado em req.user
   //   next();
   // });
 
-  next(); // Se passar pela verificação, o acesso é permitido
+  next(); // Se o token estiver presente, permite continuar
 }
 
-// Rotas protegidas com autenticação
-app.use("/admin", isAuthenticated);
-app.use("/operador", isAuthenticated);
-// Você pode adicionar mais rotas protegidas, como "/juradoA", etc.
-
-// Página inicial
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public/index.html"));
+// Rota de Login (Login de exemplo - você deve configurar a lógica real)
+app.get('/login.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/login.html'));
 });
 
-// Rotas específicas
-app.get("/admin", (req, res) => {
-  res.sendFile(path.join(__dirname, "public/admin.html"));
+// Página Inicial
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/index.html'));
 });
 
-app.get("/operador", (req, res) => {
-  res.sendFile(path.join(__dirname, "public/operador.html"));
+// Páginas protegidas com middleware de autenticação
+app.get('/admin', isAuthenticated, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/admin.html'));
 });
 
-// Adicione outras rotas se necessário (como juradoA, juradoB, etc.)
-app.get("/juradoA", (req, res) => {
-  res.sendFile(path.join(__dirname, "public/juradoA.html"));
+app.get('/operador', isAuthenticated, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/operador.html'));
 });
 
-app.get("/juradoB", (req, res) => {
-  res.sendFile(path.join(__dirname, "public/juradoB.html"));
+// Outras páginas restritas
+app.get('/juradoA', isAuthenticated, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/juradoA.html'));
 });
 
-app.get("/juradoC", (req, res) => {
-  res.sendFile(path.join(__dirname, "public/juradoC.html"));
+app.get('/juradoB', isAuthenticated, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/juradoB.html'));
+});
+
+app.get('/juradoC', isAuthenticated, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/juradoC.html'));
 });
 
 // Inicia o servidor
